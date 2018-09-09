@@ -1,0 +1,40 @@
+{
+  "name": "eventforms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/app.js",
+    "build": "webpack",
+    "lint": "eslint client/src",
+    "dev-start": "env HOST_STATIC=true nodemon server/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/pubsub": "^0.19.0",
+    "express": "^4.16.3",
+    "express-async-router": "^0.1.13",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
+    "react-redux": "^5.0.7",
+    "redux": "^4.0.0",
+    "styled-components": "^3.4.2",
+    "uuid": "^3.3.2",
+    "winston": "^3.0.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.2.6",
+    "babel-loader": "^7.1.4",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-es2017": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "eslint-plugin-babel": "^5.1.0",
+    "eslint-plugin-react": "^7.10.0",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.10"
+  }
+}

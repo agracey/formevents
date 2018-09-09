@@ -1,43 +1,49 @@
 import { combineReducers } from 'redux'
 
 
+// Handle browser refresh
+const sessionOnLoad = {
+  token: window.localStorage.getItem('token') || null,
+  uid: window.localStorage.getItem('uid') || ''
+}
 
-function session (state = {}, action) {
-  // For now, don't handle any actions
-  // and just return the state given to us.
-
+function session (state = sessionOnLoad, action) {
   if (action.type === 'LOGIN_SUCCEEDED') {
+    // Save for browser refresh
+    window.localStorage.setItem('token', action.token)
+    window.localStorage.setItem('uid', action.uid)
+
     return Object.assign({}, state, {
       token: action.token,
-      name: action.name
+      uid: action.uid
     })
   }
 
   if (action.type === 'LOGIN_CLEARED') {
+    // Save for browser refresh
+    window.localStorage.removeItem('token')
+    window.localStorage.removeItem('uid')
+
     return Object.assign({}, state, {token: '', name: ''})
   }
 
-  if (action.type === 'LOCATION_CHANGED') {
-    return Object.assign({}, state, {location: action.location})
-  }
-
-  if (action.type === 'LOCATION_CLEARED') {
-    window.localStorage.setItem('session', Object.assign({}, state, {location: ''}))
-    return Object.assign({}, state, {location: ''})
+  if (action.type === 'FORM_LIST_LOADED') {
+    return Object.assign({}, state, {formList: action.formList})
   }
 
   return state
 }
-JSON.parse(window.localStorage.getItem('form') || 'null')
-const initialForm = null
+
+
+const initialForm = JSON.parse(window.localStorage.getItem('form') || 'null')
 
 function currentForm (state = initialForm, action) {
   if (action.type === 'FORM_LOADED') {
     return action.form
   }
 
-  if (action.type === 'FORM_LOADED') {
-    return action.form
+  if (action.type === 'FORM_UNLOADED') {
+    return null
   }
 
   return state

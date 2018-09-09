@@ -3,18 +3,13 @@ const AsyncRouter = require('express-async-router').AsyncRouter
 const router = AsyncRouter()
 const winston = require('winston')
 
-const SubmissionManager = require('../services/SubmissionManager.js')
+const SubmissionService = require('../services/SubmissionManager.js')
+const LoginService = require('../services/LoginService.js')
 
+
+// for oauth when I actually get it hooked up
 router.get('/callback', (req, res) => {
-  winston.debug('Getting Locations', req.params, req.headers)
-  // TODO: make depend on login
-  return [{
-    name: 'Test Location'
-  }]
-})
-
-router.get('/locations', (req, res) => {
-  winston.debug('Getting Locations', req.params, req.headers)
+  winston.debug('Getting Token', req.params, req.headers)
   // TODO: make depend on login
   return [{
     name: 'Test Location'
@@ -51,11 +46,19 @@ router.get('/form/:name', (req, res) => {
 
 router.use(express.json())
 
+
+// for login while I'm hooking up oauth and while in dev
+router.post('/login', async (req, res) => {
+  winston.debug('Getting Token', req.params, req.headers)
+
+  const token = await LoginService.buildToken(req.body.username, req.body.password)
+  return token
+})
+
 router.post('/answers', async (req, res) => {
-  const submission = SubmissionManager.submit(req.body)
+  const submission = SubmissionService.submit(req.body)
 
   return {status: submission.status, eventId: submission.id}
 })
-
 
 module.exports = router

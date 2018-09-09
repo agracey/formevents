@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { loginActions } from './actions/loginActions.js'
+import { formActions } from './actions/loginActions.js'
+
 import styled, {ThemeProvider} from 'styled-components'
 
 import Form from 'containers/Form.jsx'
@@ -29,8 +32,7 @@ class App extends Component {
   render () {
     let comp = null
     if (!this.props.session.token) comp = this.renderLogin()
-    if (!this.props.session.location) comp = this.renderLocationSelect()
-
+    if (!this.props.form) comp = this.renderFormSelect()
 
     const theme = (this.props.form && this.props.form.theme) ? this.props.form.theme : defaultTheme
 
@@ -51,12 +53,12 @@ class App extends Component {
     )
   }
 
-  renderLocationSelect () {
-    return <div>LocationSelect</div>
-  }
-
   renderForm () {
     return <Form form={this.props.form} values={this.props.values}/>
+  }
+
+  renderFormSelect () {
+    return <div>LocationSelect</div>
   }
 
   handleLogin () {
@@ -71,9 +73,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  setToken: (uname, pass) => {
-    dispatch({type: 'LOGIN_SUCCEEDED', token: 'SOME_TOKEN', name: 'Andrew', uname, pass})
-  }
+  setToken: loginActions.buildLoginHandler(dispatch),
+  selectForm: formActions.buildFormSelectionHandler(dispatch)
 })
 
 export default connect(

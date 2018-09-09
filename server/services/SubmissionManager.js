@@ -3,17 +3,17 @@
 const PubSub = require('@google-cloud/pubsub')
 const uuidv4 = require('uuid/v4')
 
-const pubsub = PubSub()
-const topic = pubsub.topic('ANSWER_ADDED')
-
 
 class SubmissionManager {
   constructor () {
-    (() => {})()
+    const pubsub = PubSub()
+    this.topic = pubsub.topic('ANSWER_ADDED')
   }
 
   submit (answers) {
-    const id = uuidv4()
+    const formId = uuidv4()
+
+    console.log('form Submitted', answers, formId)
 
     // answers.
     // topic.publish(message)

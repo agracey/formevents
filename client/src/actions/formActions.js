@@ -27,3 +27,22 @@ export function buildSubmitHandle (dispatch) {
     //
   }
 }
+
+export function buildFormSelectionHandler (dispatch) {
+  return (formId) => {
+    dispatch({type: 'FORM_LOAD_PENDING'})
+
+    fetch(`/api/form?formId=${formId}`).then(response => {
+      const form = JSON.parse(response)
+      dispatch({
+        type: 'FORM_LOADED',
+        form
+      })
+    }).catch(error => {
+      dispatch({
+        type: 'FORM_LOAD_FAILED',
+        error
+      })
+    })
+  }
+}

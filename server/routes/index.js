@@ -16,13 +16,15 @@ router.get('/callback', (req, res) => {
   }]
 })
 
-router.get('/forms', (req, res) => {
+router.get('/formList', (req, res) => {
   return [{
-    name: 'Test Form'
+    name: 'Test Form',
+    description: 'A Test Form'
   }]
 })
 
-router.get('/form/:name', (req, res) => {
+router.get('/form/:name', async (req, res) => {
+  console.log('')
   return {
     title: 'Test Form',
     comments: 'Some comments here',
@@ -48,17 +50,17 @@ router.use(express.json())
 
 
 // for login while I'm hooking up oauth and while in dev
-router.post('/login', async (req, res) => {
-  winston.debug('Getting Token', req.params, req.headers)
+router.post('/login', (req, res) => {
+  winston.debug('Getting Password Login' + JSON.stringify(req.body))
 
-  const token = await LoginService.buildToken(req.body.username, req.body.password)
+  const token = LoginService.buildToken(req.body.username, req.body.password)
   return token
 })
 
 router.post('/answers', async (req, res) => {
-  const submission = SubmissionService.submit(req.body)
+  const submission = SubmissionService.submit(req.body.formTitle, req.body.answers)
 
-  return {status: submission.status, eventId: submission.id}
+  return {submissionId: submission.id}
 })
 
 module.exports = router

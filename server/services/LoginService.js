@@ -17,7 +17,7 @@ class LoginService {
 
   // async because I want the continuation to happen
   async publishLogin (auth) {
-    return this.topic.publish({data: JSON.stringify(auth)})
+    // return this.topic.publish({data: JSON.stringify(auth)})
   }
 }
 

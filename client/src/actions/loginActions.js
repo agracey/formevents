@@ -5,8 +5,8 @@ export function buildGetFormList (dispatch) {
   return (token) => {
     dispatch({type: 'FORM_LIST_PENDING'})
 
-    fetch('/api/formList').then(response => {
-      const formList = JSON.parse(response)
+    fetch('/api/formList').then(r => (r.json())).then(formList => {
+      console.log('formList ', formList)
       dispatch({
         type: 'FORM_LIST_LOADED',
         formList
@@ -24,16 +24,19 @@ export function buildLoginHandler (dispatch) {
   return (username, password) => {
     // Change to pending
     dispatch({type: 'LOGIN_PENDING'})
+    console.log('Logging in', username, password)
 
     // Start submit
     fetch('/api/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json; charset=utf-8'
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accepts': 'application/json; charset=utf-8'
       },
       body: JSON.stringify({username, password})
-    }).then(response => {
-      const authRes = JSON.parse(response)
+    }).then(r => (r.json())).then(authRes => {
+      console.log('Logged in', authRes)
+
       dispatch({
         type: 'LOGIN_SUCCESS',
         token: authRes.token,
@@ -42,6 +45,7 @@ export function buildLoginHandler (dispatch) {
 
       buildGetFormList(dispatch)(authRes.token)
     }).catch(error => {
+      console.log('not Logged in', error)
       dispatch({
         type: 'LOGIN_FAILED',
         error

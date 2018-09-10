@@ -1,6 +1,5 @@
 import { combineReducers } from 'redux'
 
-
 // Handle browser refresh
 const sessionOnLoad = {
   token: window.localStorage.getItem('token') || null,
@@ -8,7 +7,7 @@ const sessionOnLoad = {
 }
 
 function session (state = sessionOnLoad, action) {
-  if (action.type === 'LOGIN_SUCCEEDED') {
+  if (action.type === 'LOGIN_SUCCESS') {
     // Save for browser refresh
     window.localStorage.setItem('token', action.token)
     window.localStorage.setItem('uid', action.uid)

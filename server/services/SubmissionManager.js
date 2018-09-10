@@ -10,13 +10,15 @@ class SubmissionManager {
     this.topic = pubsub.topic('ANSWER_ADDED')
   }
 
-  submit (answers) {
-    const formId = uuidv4()
+  submit (formId, answers) {
+    const submissionId = uuidv4()
 
-    console.log('form Submitted', answers, formId)
+    console.log('form Submitted', answers, submissionId)
 
-    // answers.
-    // topic.publish(message)
+    answers.forEach((answer) => {
+      this.topic.publish({formId, submissionId, answer})
+    })
+    return {id: submissionId}
   }
 }
 

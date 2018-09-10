@@ -48,6 +48,7 @@ class Form extends Component {
 
     // If on the last page, submit
     if (this.state.pageIdx === max) {
+      // TODO: Validate form validity (required, in bounds, etc)
       this.props.handleSubmit(this.props.form, this.props.values)
       return
     }

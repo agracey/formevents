@@ -90,18 +90,44 @@
 /*!*******************************************!*\
   !*** ./client/src/actions/formActions.js ***!
   \*******************************************/
-/*! exports provided: buildSubmitHandle */
+/*! exports provided: buildSubmitHandle, buildFormSelectionHandler */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildSubmitHandle", function() { return buildSubmitHandle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildFormSelectionHandler", function() { return buildFormSelectionHandler; });
 /* global fetch */
 
+function attachValuesToQuestions(form, values) {
+  return form.pages.reduce((acc, page) => {
+    const pageAnswers = page.sections.reduce((ac, section) => {
+      const sectionAnswers = section.questions.map(q => {
+        const value = values[`${section.title.replace(' ', '_')}.${q.title.replace(' ', '_')}`];
+
+        return {
+          prompt: q.title,
+          type: q.type,
+          value,
+          default: q.default,
+          path: `${(page.title || '').replace(' ', '_')}.${section.title.replace(' ', '_')}.${q.title.replace(' ', '_')}`
+        };
+      }).filter(q => q.value);
+      return ac.concat(sectionAnswers);
+    }, []);
+
+    return acc.concat(pageAnswers);
+  }, []);
+}
+
 function buildSubmitHandle(dispatch) {
-  return values => {
+  return (form, values) => {
+    console.log('Submitting ', form, values);
+
     // Change to pending
     dispatch({ type: 'SUBMIT_PENDING' });
+
+    const answers = attachValuesToQuestions(form, values);
 
     // Start submit
     fetch('/api/answers', {
@@ -109,15 +135,103 @@ function buildSubmitHandle(dispatch) {
       headers: {
         'Content-Type': 'application/json; charset=utf-8'
       },
-      body: JSON.stringify(values)
-    }).then(response => {
+      body: JSON.stringify({ formTitle: form.title, answers })
+    }).then(r => r.json()).then(response => {
       dispatch({
         type: 'SUBMIT_SUCCESS',
-        last_submit: JSON.parse(response).submit_id
+        last_submit: response.submit_id
       });
     }).catch(error => {
       dispatch({
         type: 'SUBMIT_FAILED',
+        error
+      });
+    });
+
+    //
+  };
+}
+
+function buildFormSelectionHandler(dispatch) {
+  return formId => {
+    dispatch({ type: 'FORM_LOAD_PENDING' });
+
+    fetch(`/api/form/${encodeURI(formId)}`).then(r => r.json()).then(form => {
+      dispatch({
+        type: 'FORM_LOADED',
+        form
+      });
+    }).catch(error => {
+      dispatch({
+        type: 'FORM_LOAD_FAILED',
+        error
+      });
+    });
+  };
+}
+
+/***/ }),
+
+/***/ "./client/src/actions/loginActions.js":
+/*!********************************************!*\
+  !*** ./client/src/actions/loginActions.js ***!
+  \********************************************/
+/*! exports provided: buildGetFormList, buildLoginHandler */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildGetFormList", function() { return buildGetFormList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildLoginHandler", function() { return buildLoginHandler; });
+/* global fetch */
+
+function buildGetFormList(dispatch) {
+  return token => {
+    dispatch({ type: 'FORM_LIST_PENDING' });
+
+    fetch('/api/formList').then(r => r.json()).then(formList => {
+      console.log('formList ', formList);
+      dispatch({
+        type: 'FORM_LIST_LOADED',
+        formList
+      });
+    }).catch(error => {
+      dispatch({
+        type: 'FORM_LIST_FAILED',
+        error
+      });
+    });
+  };
+}
+
+function buildLoginHandler(dispatch) {
+  return (username, password) => {
+    // Change to pending
+    dispatch({ type: 'LOGIN_PENDING' });
+    console.log('Logging in', username, password);
+
+    // Start submit
+    fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accepts': 'application/json; charset=utf-8'
+      },
+      body: JSON.stringify({ username, password })
+    }).then(r => r.json()).then(authRes => {
+      console.log('Logged in', authRes);
+
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        token: authRes.token,
+        uid: authRes.uid
+      });
+
+      buildGetFormList(dispatch)(authRes.token);
+    }).catch(error => {
+      console.log('not Logged in', error);
+      dispatch({
+        type: 'LOGIN_FAILED',
         error
       });
     });
@@ -140,9 +254,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
-/* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
-/* harmony import */ var containers_Form_jsx__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! containers/Form.jsx */ "./client/src/containers/Form.jsx");
-/* harmony import */ var presentational_defaultTheme_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! presentational/defaultTheme.js */ "./client/src/presentational/defaultTheme.js");
+/* harmony import */ var _actions_loginActions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./actions/loginActions.js */ "./client/src/actions/loginActions.js");
+/* harmony import */ var _actions_formActions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./actions/formActions.js */ "./client/src/actions/formActions.js");
+/* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
+/* harmony import */ var containers_Form_jsx__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! containers/Form.jsx */ "./client/src/containers/Form.jsx");
+/* harmony import */ var containers_LoginForm_jsx__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! containers/LoginForm.jsx */ "./client/src/containers/LoginForm.jsx");
+/* harmony import */ var presentational_defaultTheme_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! presentational/defaultTheme.js */ "./client/src/presentational/defaultTheme.js");
 
 
 
@@ -150,13 +267,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const PageContainer = styled_components__WEBPACK_IMPORTED_MODULE_2__["default"].div`
+
+
+
+
+const PageContainer = styled_components__WEBPACK_IMPORTED_MODULE_4__["default"].div`
   width: 100%
   height: 100%;
   background:  ${props => props.theme.backgroundColor};
 `;
 
-const AppContainer = styled_components__WEBPACK_IMPORTED_MODULE_2__["default"].div`
+const AppContainer = styled_components__WEBPACK_IMPORTED_MODULE_4__["default"].div`
   max-width: 525px;
   height: 100%;
   background:  ${props => props.theme.foregroundColor};
@@ -164,22 +285,25 @@ const AppContainer = styled_components__WEBPACK_IMPORTED_MODULE_2__["default"].d
 `;
 
 class App extends react__WEBPACK_IMPORTED_MODULE_0__["Component"] {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       pageIdx: 0
     };
+    console.log('constructor: ', this.props);
+
+    if (this.props.session.token && !this.props.form) props.getFormList(this.props.session.token);
   }
 
   render() {
     let comp = null;
-    if (!this.props.session.token) comp = this.renderLogin();
-    // if(!this.props.session.location) return this.renderLocationSelect()
+    console.log('props: ', this.props);
+    if (!this.props.session.token) comp = this.renderLogin();else if (!this.props.form) comp = this.renderFormSelect();
 
-    const theme = this.props.form && this.props.form.theme ? this.props.form.theme : presentational_defaultTheme_js__WEBPACK_IMPORTED_MODULE_4__["default"];
+    const theme = this.props.form && this.props.form.theme ? this.props.form.theme : presentational_defaultTheme_js__WEBPACK_IMPORTED_MODULE_7__["default"];
 
     return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
-      styled_components__WEBPACK_IMPORTED_MODULE_2__["ThemeProvider"],
+      styled_components__WEBPACK_IMPORTED_MODULE_4__["ThemeProvider"],
       { theme: theme },
       react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
         PageContainer,
@@ -194,40 +318,53 @@ class App extends react__WEBPACK_IMPORTED_MODULE_0__["Component"] {
   }
 
   renderLogin() {
-    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
-      'button',
-      { onClick: this.handleLogin.bind(this) },
-      'Click here to login'
-    );
-  }
-
-  renderLocation() {
-    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
-      'div',
-      null,
-      'LocationSelect'
-    );
+    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(containers_LoginForm_jsx__WEBPACK_IMPORTED_MODULE_6__["default"], { handleSubmit: this.props.handleLogin.bind(this) });
   }
 
   renderForm() {
-    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(containers_Form_jsx__WEBPACK_IMPORTED_MODULE_3__["default"], { form: this.props.form, values: this.props.values });
+    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(containers_Form_jsx__WEBPACK_IMPORTED_MODULE_5__["default"], { form: this.props.form, values: this.props.values });
   }
 
-  handleLogin() {
-    this.props.setToken('blah', 'password');
+  renderFormSelect() {
+    if (!this.props.session.formList) {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+        'div',
+        null,
+        'Form list Loading'
+      );
+    }
+    const forms = this.props.session.formList.map(({ name, description }) => {
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+        'div',
+        { onClick: this.props.selectForm.bind(this, name), key: name },
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+          'span',
+          null,
+          name
+        ),
+        ' ',
+        description
+      );
+    });
+
+    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+      'div',
+      null,
+      forms
+    );
   }
 }
 
 const mapStateToProps = state => ({
-  form: state.currentForm || {},
+  form: state.currentForm,
   values: state.formData,
   session: state.session
 });
 
 const mapDispatchToProps = dispatch => ({
-  setToken: (uname, pass) => {
-    dispatch({ type: 'LOGIN_SUCCEEDED', token: 'SOME_TOKEN', name: 'Andrew', uname, pass });
-  }
+  handleLogin: Object(_actions_loginActions_js__WEBPACK_IMPORTED_MODULE_2__["buildLoginHandler"])(dispatch),
+  selectForm: Object(_actions_formActions_js__WEBPACK_IMPORTED_MODULE_3__["buildFormSelectionHandler"])(dispatch),
+  getFormList: Object(_actions_loginActions_js__WEBPACK_IMPORTED_MODULE_2__["buildGetFormList"])(dispatch)
 });
 
 /* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(mapStateToProps, mapDispatchToProps)(App));
@@ -279,6 +416,7 @@ class Form extends react__WEBPACK_IMPORTED_MODULE_0__["Component"] {
 
       // If on the last page, submit
       if (this.state.pageIdx === max) {
+        // TODO: Validate form validity (required, in bounds, etc)
         this.props.handleSubmit(this.props.form, this.props.values);
         return;
       }
@@ -324,6 +462,82 @@ const mapDispatchToProps = dispatch => ({
 });
 
 /* harmony default export */ __webpack_exports__["default"] = (Object(react_redux__WEBPACK_IMPORTED_MODULE_1__["connect"])(a => a, mapDispatchToProps)(Form));
+
+/***/ }),
+
+/***/ "./client/src/containers/LoginForm.jsx":
+/*!*********************************************!*\
+  !*** ./client/src/containers/LoginForm.jsx ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return LoginForm; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+
+
+class LoginForm extends react__WEBPACK_IMPORTED_MODULE_0__["Component"] {
+  constructor() {
+    super();
+
+    this.handleUsernameChange = event => {
+      event.preventDefault();
+      this.setState({
+        username: event.target.value
+      });
+    };
+
+    this.handlePasswordChange = event => {
+      event.preventDefault();
+      this.setState({
+        password: event.target.value
+      });
+    };
+
+    this.handleSubmit = event => {
+      event.preventDefault();
+      this.setState({
+        submitted: true
+      });
+
+      this.props.handleSubmit(this.state.username, this.state.password);
+    };
+
+    this.state = {
+      username: '',
+      password: '',
+      submitted: false
+    };
+  }
+
+  render() {
+    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+      'div',
+      null,
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement('input', {
+        type: 'email',
+        value: this.state.username,
+        onChange: this.handleUsernameChange,
+        placeholder: 'Email Address'
+      }),
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement('input', {
+        type: 'password',
+        value: this.state.password,
+        onChange: this.handlePasswordChange,
+        placeholder: 'Password'
+      }),
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(
+        'button',
+        { onClick: this.handleSubmit },
+        'Sign in'
+      )
+    );
+  }
+
+}
 
 /***/ }),
 
@@ -696,42 +910,48 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var redux__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! redux */ "./node_modules/redux/es/redux.js");
 
 
-function session(state = {}, action) {
-  // For now, don't handle any actions
-  // and just return the state given to us.
+// Handle browser refresh
+const sessionOnLoad = {
+  token: window.localStorage.getItem('token') || null,
+  uid: window.localStorage.getItem('uid') || ''
+};
 
-  if (action.type === 'LOGIN_SUCCEEDED') {
+function session(state = sessionOnLoad, action) {
+  if (action.type === 'LOGIN_SUCCESS') {
+    // Save for browser refresh
+    window.localStorage.setItem('token', action.token);
+    window.localStorage.setItem('uid', action.uid);
+
     return Object.assign({}, state, {
       token: action.token,
-      name: action.name
+      uid: action.uid
     });
   }
 
   if (action.type === 'LOGIN_CLEARED') {
+    // Save for browser refresh
+    window.localStorage.removeItem('token');
+    window.localStorage.removeItem('uid');
+
     return Object.assign({}, state, { token: '', name: '' });
   }
 
-  if (action.type === 'LOCATION_CHANGED') {
-    return Object.assign({}, state, { location: action.location });
-  }
-
-  if (action.type === 'LOCATION_CLEARED') {
-    window.localStorage.setItem('session', Object.assign({}, state, { location: '' }));
-    return Object.assign({}, state, { location: '' });
+  if (action.type === 'FORM_LIST_LOADED') {
+    return Object.assign({}, state, { formList: action.formList });
   }
 
   return state;
 }
-JSON.parse(window.localStorage.getItem('form') || 'null');
-const initialForm = null;
+
+const initialForm = JSON.parse(window.localStorage.getItem('form') || 'null');
 
 function currentForm(state = initialForm, action) {
   if (action.type === 'FORM_LOADED') {
     return action.form;
   }
 
-  if (action.type === 'FORM_LOADED') {
-    return action.form;
+  if (action.type === 'FORM_UNLOADED') {
+    return null;
   }
 
   return state;
@@ -744,11 +964,7 @@ function formData(state = {}, action) {
     state = Object.assign({}, state, changes);
   }
 
-  if (action.type === 'RESET_VALUES') {
-    return {};
-  }
-
-  if (action.type === 'FORM_SUBMITTED') {
+  if (action.type === 'RESET_VALUES' || action.type === 'FORM_SUBMITTED') {
     return {};
   }
 

@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { loginActions } from './actions/loginActions.js'
-import { formActions } from './actions/loginActions.js'
+import { buildLoginHandler, buildGetFormList } from './actions/loginActions.js'
+import { buildFormSelectionHandler } from './actions/formActions.js'
 
 import styled, {ThemeProvider} from 'styled-components'
 
 import Form from 'containers/Form.jsx'
+import LoginForm from 'containers/LoginForm.jsx'
 import defaultTheme from 'presentational/defaultTheme.js'
 
 const PageContainer = styled.div`
@@ -22,17 +23,21 @@ const AppContainer = styled.div`
 `
 
 class App extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
     this.state = {
       pageIdx: 0
     }
+    console.log('constructor: ', this.props)
+
+    if (this.props.session.token && !this.props.form) props.getFormList(this.props.session.token)
   }
 
   render () {
     let comp = null
+    console.log('props: ', this.props)
     if (!this.props.session.token) comp = this.renderLogin()
-    if (!this.props.form) comp = this.renderFormSelect()
+    else if (!this.props.form) comp = this.renderFormSelect()
 
     const theme = (this.props.form && this.props.form.theme) ? this.props.form.theme : defaultTheme
 
@@ -49,7 +54,7 @@ class App extends Component {
 
   renderLogin () {
     return (
-      <button onClick={this.handleLogin.bind(this)}>Click here to login</button>
+      <LoginForm handleSubmit={this.props.handleLogin.bind(this)}/>
     )
   }
 
@@ -58,11 +63,18 @@ class App extends Component {
   }
 
   renderFormSelect () {
-    return <div>LocationSelect</div>
-  }
+    if (!this.props.session.formList) {
+      return (<div>Form list Loading</div>)
+    }
+    const forms = this.props.session.formList.map(({name, description}) => {
+      return (
+        <div onClick={this.props.selectForm.bind(this, name)} key={name}><span>{name}</span> {description}</div>
+      )
+    })
 
-  handleLogin () {
-    this.props.setToken('blah', 'password')
+    return (<div>
+      {forms}
+    </div>)
   }
 }
 
@@ -73,8 +85,9 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  setToken: loginActions.buildLoginHandler(dispatch),
-  selectForm: formActions.buildFormSelectionHandler(dispatch)
+  handleLogin: buildLoginHandler(dispatch),
+  selectForm: buildFormSelectionHandler(dispatch),
+  getFormList: buildGetFormList(dispatch)
 })
 
 export default connect(

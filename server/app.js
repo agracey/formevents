@@ -1,4 +1,7 @@
 // For the time being, I'll use the non-ES6 style of modules instead of dealing with webpack for both sides
+require('@google-cloud/debug-agent').start({
+  allowExpressions: true
+})
 
 const express = require('express')
 const app = express()

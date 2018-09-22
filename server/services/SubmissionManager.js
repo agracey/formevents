@@ -3,21 +3,20 @@
 const PubSub = require('@google-cloud/pubsub')
 const uuidv4 = require('uuid/v4')
 
-
 class SubmissionManager {
   constructor () {
     const pubsub = PubSub()
-    this.topic = pubsub.topic('ANSWER_ADDED')
+    this.publisher = pubsub.topic('ANSWER_ADDED').publisher()
   }
 
-  submit (formId, answers) {
+  async submit (formId, answers, language) {
+    // Go ahead and make a random id for the submission
     const submissionId = uuidv4()
 
-    console.log('form Submitted', answers, submissionId)
-
     answers.forEach((answer) => {
-      this.topic.publish({formId, submissionId, answer})
+      this.publisher.publish(Buffer.from(JSON.stringify({formId, submissionId, answer, language})))
     })
+
     return {id: submissionId}
   }
 }

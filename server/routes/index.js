@@ -5,6 +5,7 @@ const winston = require('winston')
 
 const SubmissionService = require('../services/SubmissionManager.js')
 const LoginService = require('../services/LoginService.js')
+const FormService = require('../services/FormService.js')
 
 
 // for oauth when I actually get it hooked up
@@ -17,32 +18,11 @@ router.get('/callback', (req, res) => {
 })
 
 router.get('/formList', (req, res) => {
-  return [{
-    name: 'Test Form',
-    description: 'A Test Form'
-  }]
+  return FormService.getAllForms()
 })
 
 router.get('/form/:name', async (req, res) => {
-  console.log('')
-  return {
-    title: 'Test Form',
-    comments: 'Some comments here',
-    pages: [
-      {
-        sections: [{
-          title: 'Section One',
-          comments: 'hello',
-          questions: [{
-            title: 'Question One',
-            type: 'range',
-            min: 1,
-            max: 5
-          }]
-        }]
-      }
-    ]
-  }
+  return FormService.getFormSpec(req.params.name)
 })
 
 
@@ -58,7 +38,10 @@ router.post('/login', (req, res) => {
 })
 
 router.post('/answers', async (req, res) => {
-  const submission = SubmissionService.submit(req.body.formTitle, req.body.answers)
+  const submission = await SubmissionService.submit(
+    req.body.formId,
+    req.body.answers,
+    req.body.language || 'en-US')
 
   return {submissionId: submission.id}
 })

@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { buildLoginHandler, buildGetFormList } from './actions/loginActions.js'
-import { buildFormSelectionHandler } from './actions/formActions.js'
+import { buildFormSelectionHandler, buildResetFormAfterSuccess } from './actions/formActions.js'
 
 import styled, {ThemeProvider} from 'styled-components'
 
 import Form from 'containers/Form.jsx'
 import LoginForm from 'containers/LoginForm.jsx'
+import FormList from 'presentational/FormList.jsx'
 import defaultTheme from 'presentational/defaultTheme.js'
+import FormSuccess from 'presentational/FormSuccess.jsx'
 
 const PageContainer = styled.div`
   width: 100%
@@ -38,6 +40,7 @@ class App extends Component {
     console.log('props: ', this.props)
     if (!this.props.session.token) comp = this.renderLogin()
     else if (!this.props.form) comp = this.renderFormSelect()
+    else if (this.props.session.show_success) comp = this.renderFormSuccess()
 
     const theme = (this.props.form && this.props.form.theme) ? this.props.form.theme : defaultTheme
 
@@ -54,27 +57,40 @@ class App extends Component {
 
   renderLogin () {
     return (
-      <LoginForm handleSubmit={this.props.handleLogin.bind(this)}/>
+      <LoginForm
+        handleSubmit={this.props.handleLogin.bind(this)}
+      />
     )
   }
 
   renderForm () {
-    return <Form form={this.props.form} values={this.props.values}/>
+    return <Form
+      form={this.props.form}
+      values={this.props.values}
+    />
   }
 
   renderFormSelect () {
-    if (!this.props.session.formList) {
-      return (<div>Form list Loading</div>)
-    }
-    const forms = this.props.session.formList.map(({name, description}) => {
-      return (
-        <div onClick={this.props.selectForm.bind(this, name)} key={name}><span>{name}</span> {description}</div>
-      )
-    })
+    return (
+      <FormList
+        formList={this.props.session.formList || []}
+        handleSelect={this.props.selectForm}
+      />
+    )
+  }
 
-    return (<div>
-      {forms}
-    </div>)
+
+  renderFormSuccess () {
+    return (
+      <FormSuccess
+        submission_id={this.props.session.show_success}
+        form={this.props.form}
+        handleReset={() => {
+          this.setState({pageIdx: 0})
+          this.props.resetFormAfterSuccess()
+        }}
+      />
+    )
   }
 }
 
@@ -87,7 +103,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   handleLogin: buildLoginHandler(dispatch),
   selectForm: buildFormSelectionHandler(dispatch),
-  getFormList: buildGetFormList(dispatch)
+  getFormList: buildGetFormList(dispatch),
+  resetFormAfterSuccess: buildResetFormAfterSuccess(dispatch)
 })
 
 export default connect(

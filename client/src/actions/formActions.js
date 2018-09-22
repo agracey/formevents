@@ -1,18 +1,18 @@
 /* global fetch */
 
-function attachValuesToQuestions (form, values) {
+export function attachValuesToQuestions (form, values) {
   return form.pages.reduce((acc, page) => {
     const pageAnswers = page.sections.reduce((ac, section) => {
       const sectionAnswers = section.questions
         .map(q => {
-          const value = values[`${section.title.replace(' ', '_')}.${q.title.replace(' ', '_')}`]
+          const value = values[`${section.title.split(' ').join('_')}.${q.title.split(' ').join('_')}`]
 
           return {
             prompt: q.title,
             type: q.type,
             value,
             default: q.default,
-            path: `${(page.title || '').replace(' ', '_')}.${section.title.replace(' ', '_')}.${q.title.replace(' ', '_')}`
+            path: `${(page.title || '').split(' ').join('_')}.${section.title.split(' ').join('_')}.${q.title.split(' ').join('_')}`
           }
         })
         .filter(q => (q.value))
@@ -25,12 +25,12 @@ function attachValuesToQuestions (form, values) {
 
 export function buildSubmitHandle (dispatch) {
   return (form, values) => {
-    console.log('Submitting ', form, values)
-
-    // Change to pending
+    // Change to pending then process
     dispatch({type: 'SUBMIT_PENDING'})
 
     const answers = attachValuesToQuestions(form, values)
+
+    console.log(form, values, answers)
 
     // Start submit
     fetch('/api/answers', {
@@ -42,7 +42,7 @@ export function buildSubmitHandle (dispatch) {
     }).then(r => (r.json())).then(response => {
       dispatch({
         type: 'SUBMIT_SUCCESS',
-        last_submit: response.submit_id
+        submissionId: response.submissionId
       })
     }).catch(error => {
       dispatch({
@@ -70,5 +70,11 @@ export function buildFormSelectionHandler (dispatch) {
         error
       })
     })
+  }
+}
+
+export function buildResetFormAfterSuccess (dispatch) {
+  return () => {
+    dispatch({type: 'RESET_AFTER_SUBMIT'})
   }
 }

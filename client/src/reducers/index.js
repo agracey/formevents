@@ -3,7 +3,8 @@ import { combineReducers } from 'redux'
 // Handle browser refresh
 const sessionOnLoad = {
   token: window.localStorage.getItem('token') || null,
-  uid: window.localStorage.getItem('uid') || ''
+  uid: window.localStorage.getItem('uid') || '',
+  show_success: false
 }
 
 function session (state = sessionOnLoad, action) {
@@ -28,6 +29,15 @@ function session (state = sessionOnLoad, action) {
 
   if (action.type === 'FORM_LIST_LOADED') {
     return Object.assign({}, state, {formList: action.formList})
+  }
+
+  if (action.type === 'SUBMIT_SUCCESS') {
+    console.log('SUBMIT_SUCCESS', action)
+    return Object.assign({}, state, {show_success: action.submissionId})
+  }
+
+  if (action.type === 'RESET_AFTER_SUBMIT') {
+    return Object.assign({}, state, {show_success: false})
   }
 
   return state
@@ -55,7 +65,7 @@ function formData (state = {}, action) {
     state = Object.assign({}, state, changes)
   }
 
-  if (action.type === 'RESET_VALUES' || action.type === 'FORM_SUBMITTED') {
+  if (action.type === 'RESET_VALUES' || action.type === 'SUBMIT_SUCCESS') {
     return {}
   }
 

@@ -5,7 +5,7 @@ const PubSub = require('@google-cloud/pubsub')
 class LoginService {
   constructor () {
     const pubsub = PubSub()
-    this.topic = pubsub.topic('USER_LOGGEDIN')
+    this.publisher = pubsub.topic('USER_LOGGEDIN').publisher()
   }
 
   buildToken (uid, password) {
@@ -17,7 +17,7 @@ class LoginService {
 
   // async because I want the continuation to happen
   async publishLogin (auth) {
-    // return this.topic.publish({data: JSON.stringify(auth)})
+    return this.publisher.publish(Buffer.from(JSON.stringify(auth)))
   }
 }
 

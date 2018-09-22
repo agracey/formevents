@@ -69,7 +69,7 @@ class Question extends Component {
 
 function buildQuestionKey (props) {
   const key = [props.section.title, props.question.title]
-    .map(a => a.replace(' ', '_')).join('.')
+    .map(a => a.split(' ').join('_')).join('.')
 
   return key
 }

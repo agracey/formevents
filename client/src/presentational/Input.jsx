@@ -43,14 +43,26 @@ export default class Input extends Component {
   }
 
   renderRangeInput () {
+    const choices = (this.props.schema.choices || []).map((o) => (
+      <li
+        value={o.val || o}
+        key={o.val || o}
+        onClick={this.props.onChange.bind(null, o.val)}
+        selected={this.props.value === o.val}
+      >
+        {o.text || o}
+      </li>
+    ))
+
     return (
-      <input
-        type="text"
-        value={this.props.value || ''}
-        onChange={this.props.onChange}
-      />
+      <ul
+        value={this.props.value}
+      >
+        {choices}
+      </ul>
     )
   }
+
   renderOptionInput () {
     const options = (this.props.schema.options || []).map((o) => (
       <option
@@ -82,22 +94,24 @@ export default class Input extends Component {
   }
 
   renderSelectionInput () {
-    const options = (this.props.schema.options || []).map((o) => (
-      <option
+    // Should I allow multiples here?
+    const choices = (this.props.schema.choices || []).map((o) => (
+      <li
         value={o.val || o}
         key={o.val || o}
+        onClick={this.props.onChange.bind(null, o.val)}
+        selected={this.props.value === o.val}
       >
         {o.text || o}
-      </option>
+      </li>
     ))
 
     return (
-      <select
-        onChange={this.props.onChange}
+      <ul
         value={this.props.value}
       >
-        {options}
-      </select>
+        {choices}
+      </ul>
     )
   }
 }
